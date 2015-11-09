@@ -1,4 +1,4 @@
-module Lib (
+module VForth (
    module VForth.Location
  , welcomeMsg
  ) where
