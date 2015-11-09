@@ -12,7 +12,7 @@ Developing applications with Haskell requires several tools
  
 It is, unfortunately, embarrassingly difficult to get all three installed and working together, particularly if you're not using Linux. The main problem is that many verstions of the compiler, tools and libraries exist, and installing the versions that happen to work well together is tricky[[2]](fixme).
  
-In recent times, the [Stackage]() project has been launched by the people at [FP Complete](http://www.fpcomplete.com) to address this. Stackage maintains a collection of particular Haskell libraries and applications, at specific versions, which are all tested to not only be stable themselves, but stable with respect to each other. It is similar to a Linux distribution.
+In recent times, the [Stackage](https://www.stackage.org) project has been launched by the people at [FP Complete](http://www.fpcomplete.com) to address this. Stackage maintains a collection of particular Haskell libraries and applications, at specific versions, which are all tested to not only be stable themselves, but stable with respect to each other. It is similar to a Linux distribution.
 
 However we will be largely eschewing stack for the time being, as none of the available Haskell IDEs currently work with it.
 
@@ -51,7 +51,7 @@ The [IntelliJ IDEA](https://www.jetbrains.com/idea/) plugins, both IntelliJ's ow
 
 The [EclipseFP plugin](http://eclipsefp.github.io/) used to work very well indeed, but it relies on a tool called `buildwrapper` which ironically will not build with GHC 7.10 & Cabal 1.22
 
-The [Leksah]() application is a Haskell IDE written in Haskell which will definitely work. Visually it looks quite poor on Mac OSX and Windows, and its layout is rather peculiar, making it difficult to get to grips with.
+The [Leksah](http://leksah.org) application is a Haskell IDE written in Haskell which will definitely work. Visually it looks very poor on Mac OSX and Windows, and it has a slightly complicated layout that takes time to get used to.
 
 Therefore the next best approach after Atom/IDE-Haskell, is an approach which is guaranteed to work: the web-based IDE provided by [FP Complete](http://www.fpcomplete.com). Obviously this requires a constant internet connection, and a github hosted project, but it does work well.
 
