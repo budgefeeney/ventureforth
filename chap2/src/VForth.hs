@@ -1,6 +1,9 @@
 module VForth (
-   welcomeMsg
+   module VForth.Location
+ , welcomeMsg
  ) where
+
+import VForth.Location
 
 -- | The message shown when the application starts
 welcomeMsg :: String

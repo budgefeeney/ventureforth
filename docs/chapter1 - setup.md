@@ -11,78 +11,239 @@ To keep the focus on the core language, I've chosen to develop a [text adventure
 This game is in fact a port of a game written as part of an Amstrad CPC BASIC tutorial published in issues [93](https://archive.org/details/amstrad-action-093), [94](https://archive.org/details/amstrad-action-094), [95](https://archive.org/details/amstrad-action-095) and [96](https://archive.org/details/amstrad-action-096) of [Amstrad Action](https://en.wikipedia.org/wiki/Amstrad_Action) magazine back in 1993.
 
 
-In this first part of the tutorial we'll
+In this first part of the tutorial we'll just
 
  1. Create a full project skeleton
- 2. Create a single simple type representing a location in our game
- 3. Add a unit test for it
- 4. Use cabal to run unit-tests, evaluate coverage, and generate code-documentation
+ 2. Use cabal, with a sandbox, to build it.
+ 
+While simple, this is something not very well described elsewhere, and is somewhat tedious. However once done, this will act as a template for all future projects.
 
 You'll need to have a fully functioning Haskell development environment setup with `cabal`, GHC 7.10 or later and ideally some sort of decent IDE. For instructions on how to set this up look at this [previous post](fixme).
 
-This first part is unfortunately long on setup and short on code, the rest should be a lot more enjoyable and code-centric.
 
 
 # Starting a new Haskell Project
+
+**FIXME** Use name VForth.hs instead of Lib.sh to avoid name clashes if application used as a library
 
 As Venture Forth will be a "proper" application it will have be comprised of the following parts
 
  * A library with all the core testable logic
  * An application using that library - typically this is just a single Main.hs project
- * A set of unit tests testing the library only.
+ * A set of unit tests testing the library (only).
  	* We will also want to record both test coverage and documentation coverage.
- * A set of benchmarks evaluating performance
+ * A set of benchmarks evaluating performance of critical code-paths
+
+Lets assume you're going to be working in `$HOME/Workspace/ventureforth`. Open a terminal and type the following
+
+```
+mkdir $HOME/Workspace/ventureforth
+cd $HOME/Workspace/ventureforth
+cabal init
+```
+
+This, interactively, creates a project for you. Most of the settings are self-explanatory. I'd recommend using a `src` directory for your code and a the `Haskell2010` dialect. 
+
+We'll make a number of changes to this basic template. First, however, we'll create some files:
+
+```
+touch README.md
+mkdir app
+touch app/Main.hs
+touch src/VForth.hs
+mkdir test
+touch test/Spec.hs
+mkdir bench
+touch bench/Bench.hs
+```
+
+Now we're ready to edit the `ventureforth.cabal` file. 
+
+> If you're an Atom user, you should at this point avoid it and use another text-editor instead, as Atom's Haskell support is reliant on having a complete and well-formed Cabal file.
+
+## Customising your Cabal File
+
+### Metadata
+
+In the initial metadata block, provide a description of your project. Values can span multiple lines if they are indented, so
+
+```
+description:
+	Venture Forth is a text-based adventure game ported
+	from the game of the same name developed in Amstrad
+	Action, about a man, his laundry, and his need to
+	clean them.
+	
+	It is a port of a game written as part of a Locomotive
+	BASIC tutorial written in Amstrad Action magazine.
+	
+	This port is intended as a teaching example and so,
+	like the original, is quite short.
+```
+Feel free to add more detail here.
+
+If you're a GitHub user, you may find it useful to add a link to the bug-tracker:
+
+```
+bug-reports: http://github.com/username/ventureforth/issues
+```
+
+You'll also probably want to uncomment the copyright line and add the names of the owners.
+
+Next add your README.md file as an "extra source file". If you're maintaining a changelog, add this here aswell.
+
+```
+extra-source-files:
+    README.md
+```
+
+Finally, after the metadata, add information about source-control. This varies of course: GitHub users can enter
+
+```
+source-repository head
+    type: git
+    location: https://github.com/username/ventureforth
+```
+
+### Subprojects
+
+With the metadata section filled, we can now create the four subprojects: for the library; for the app; for the test-suite; and for the benchmarks.
+
+Add the following section for the library
+
+```
+library
+  hs-source-dirs:      src
+  exposed-modules:     VForth
+  build-depends:       base >= 4.7 && < 5
+  ghc-options:         -Wall -Werror
+  default-language:    Haskell2010
+```
+
+The `ghc-options` parameter lists the flags passed to the compiler ([full list here](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/flag-reference.html)) when compiling code. Haskell warnings are suitably valuable that I recommend turning al of them on (`-Wall`) and promoting them to errors (`-Werror`)
+
+Next modify the section for the executable
+
+```
+executable ventureforth
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  build-depends:       base >= 4.7 && < 5,
+                       ventureforth -any
+  ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+```
+
+Note that the app depends on a library called `ventureforth`. This is our library! The name comes explicitly from the `name` field at the top of the Cabal file. The added ghc options are
+
+ * `-rtsopts` allows users to [configure the the Haskell runtime system (RTS) when launching your program](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/runtime-control.html), for example to specify how many CPU cores to use for parallelism, or the maximum heap size. There are lists of RTS flags for [general usage](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/runtime-control.html#rts-hooks), [parallelism](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/using-smp.html#parallel-options), [concurrency](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/using-concurrent.html) and [garbage collection](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/runtime-control.html#rts-options-gc).
+ * `-threaded` ensures the the runtime must always support multithreaded programs - e.g. the garbage collector must be thread-safe
+ * `-with-rtsopts` specifies the default RTS options. In this case `-N` sets the number of cores to use for automatic parallelism: with no number specified, it indicates that all available cores should be used.
  
-We'll be using `cabal` to handle almost all of this for us. However to get us started quickly, we'll use `stack` to create a template standalone application project. Stack is capable of much more than this, but to keep things simple, we won't be using it.
-
-Lets assume you're going to be working in `$HOME/Workspace/vforth`. Open a terminal and type the following
-
+Next add the section for the test project.
 
 ```
-cd $HOME/Workspace
-stack init vforth chrisdone
+test-suite ventureforth-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base >= 4.7 && < 5,
+                       ventureforth -any,
+                       doctest >= 0.9 && < 0.11,
+                       hspec >= 2.2
+  ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
 ```
 
-This creates a folder called `vforth` and within it creates a project according to the "chrisdone" application template. You should edit the `vforth.cabal` file to fit your needs. It's mostly self-explanatory: the only subtlety is the difference between "synopsis" and "description". The "synopsis" is a single-sentence summary of your project, while "description" is a paragraph or two descriping it in depth. In the template you're just referred to the `README.md` file, which you should also edit, as well as the licence file.
+This is broadly the same as for the executable, except that this is a `test-suite` section rather than an `executable` and we've specifed a test type: `exitcode-stdio`. This type of test is for test-apps which indicate failure using a non-zero executable exit code, and which print debug to stdout. The alternative is `detailed-0.9`, which is newer, cleaner, but less well supported. The [cabal manual](https://www.haskell.org/cabal/users-guide/developing-packages.html#test-suites) discusses this further.
 
+Also, we're going to be using several libraries to create our test cases, so we include them here. This section is an example of Cabal's cleverness with dependent version numbers, using ranges and wildcards. We'll discuss these different libraries when we come to actually writing unit-tests, though note that HSpec automatically brings in the QuickCheck and HUnit libraries.
 
-
-
-### Where to put the code
-For libraries, you are expected to create package names which fit directly into the [existing namespace](https://wiki.haskell.org/Hierarchical_module_names), the [Lens project](https://github.com/ekmett/lens) is a good example.
-
-However for applications, it's better to have a top-level package corresponding to your application name. [XMonad](https://github.com/xmonad/xmonad) is an example of one such modern Haskell application.
-
-Thus we'll create a top-level package corresponding to our application which we'll name "VenForth". Within that, the preference for Haskell is generally to keep hierarchies flat, though we will go slightly deep with separate `Entity`, `Parser` etc packages.
-
-For this skeleton, we'll just create a very simple `Location` type representing a place in the game.
-
-So in `src/VenForth/Entites` create a file `Location.hs` with the contents
+The final sub-project is for benchmarking:
 
 ```
-module Location (
-  Location(..)
-  )
-  where
-  
-  data Location = Location {
-      title :: String
-  	, description :: String
-  	}
-  	
-  instance Show Location where
-    show l = 
-    	title l ++ "\n"
-    	++ replicate (length $ title l) '-' ++ "\n"
-    	++ )description l
-    	
+benchmark ventureforth-bench
+    type: exitcode-stdio-1.0
+    main-is: Bench.hs
+    build-depends:
+        base >= 4.7 && < 5,
+        ventureforth -any,
+        criterion == 1.*
+    ghc-options: -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
 ```
 
-We'll flesh this out in the next post. For the time being, we've create a basic `Location` datatype, and implemented the only typeclass we currently care about, `Show`.
+This requires a benchmarking library called [criterion](https://hackage.haskell.org/package/criterion) [(tutorial)](http://www.serpentine.com/criterion/tutorial.html). 
+
+Note that you can specify as many executables, test-suites and benchmarks as you want in a cabal file, provided they have different names. All will be built (and run as appropriate) by calling `cabal build`, `cabal test` or `cabal bench` on the command-line.
+ 
+### Sandboxing
+
+Now that we've amended our cabal file, we'll need to make sure all our dependencies have been downloaded. While one could install them globally, this tends rapidly to lead to a situation where different applications and / or projects require different versions of a library, breaking other libraries in turn.
+
+To avoid this "cabal hell", it's better for each project you undertake to have its own private library repository, called a [sandbox](https://www.haskell.org/cabal/users-guide/installing-packages.html#developing-with-sandboxes). Create a sandbox in the project directory and then install all your project's required dependencies into it.
+
+```
+cabal sandbox init
+cabal install --only-dependencies
+```
+
+Since we have other dependencies, for tests and benchmarking, we have to repeat this process
+
+```
+cabal configure --enable-tests
+cabal install --only-dependencies --enable-tests
+```
+```
+cabal configure --enable-benchmark
+cabal install --only-dependencies --enable-benchmark
+```
+
+Finally enter the following dummy code into `app/Main.hs` and `src/VForth.hs` respectively.
+
+```
+module Main where
+import VForth
+
+main :: IO ()
+main = putStrLn welcomeMsg
+```
+
+```
+module VForth (
+  welcomeMsg
+) where
+
+-- | The text shown when the app launches
+welcomeMsg :: String
+welcomeMsg = "Wake up! It's time to venture forth."
+```
+
+## Testing it out
+
+To compile just type `cabal build` to build it. The executable is
+
+```
+./dist/build/ventureforth/ventureforth
+```
+
+You can also create the documentation, using
+
+```
+cabal haddock
+```
+
+Finally, you can play with the code in your library using
+
+```
+cabal repl
+```
+
+In this case just the `welcomeMsg` function will be available.
+
+We are now ready to start editing our source files, and with a correct Cabal configuration, we can at last use Atom and IDE-Haskell to do so. In the next section we'll add a module, a unit-test and a benchmark.
 
 
-
-# Futher Reading:
+## Futher Reading:
 Resources on how to create a Haskell project include [this example of starting a Haskell project](https://howistart.org/posts/haskell/1) and the [Holy Haskell Project Starter](http://yannesposito.com/Scratch/en/blog/Holy-Haskell-Starter/). 
 
 
