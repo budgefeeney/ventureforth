@@ -1,6 +1,6 @@
 # Venture Forth: A Module, a Test, and a Benchmark
 
-This is the second part of the [Venture Forth tutorial](fixme) on how to create a full Haskell application. The previous part was [building a skeleton project](fixme).
+This is the second part of the [Venture Forth tutorial](fixme) on how to create a full Haskell application. The previous part was [building a skeleton project](fixme). Code for this part can be found [on github](https://github.com/budgefeeney/ventureforth/tree/master/chap2)
 
 In this part we'll
 
@@ -105,22 +105,16 @@ spec = do
     it "Show puts title before dashes before a description" $ do
       show (newLocation "My Title" "The complete description.") `shouldBe` "My Title\n--------\nThe complete description."
 
-    it "Title should be included in description" $ do
+    it "Title should be included in showable output" $ do
       show (newLocation "My Title" "The complete description.") `shouldContain` "My Title"
 
-    it "Title should be included in description" $ do
+    it "Description should be included in showable output" $ do
       show (newLocation "My Title" "The complete description.") `shouldContain` "The complete description."
 
 ```
 
 The indentation is crucial for reading and compiling this. Use the `description` block to identify a test group, and the `it` function to say what each test is doing and provide a HUnit style unit-test. The full list of "shouldXXX" functions are listed on [HSpec's Hackage page](https://hackage.haskell.org/package/hspec-expectations-0.7.2/docs/Test-Hspec-Expectations.html).
 
-
-FIXME Send to chapter 3
-
-Simple unit-tests like this are quite fragile, as they only test the examples it occurs to you to write, and developers often make the same false assumptions when creating test examples that they do when creating the testable code. A more robust alternative is QuickCheck: you simply specify an invariant, such that title is in the show-ed text, and QuickCheck generates dozens of sample inputs and sees if it always holds. We'll discuss QuickCheck in the next part of this tutorial.
-
-END FIXME
 
 Edit `test/Spec.hs` to add the Location test:
 

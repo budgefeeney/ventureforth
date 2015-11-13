@@ -55,7 +55,7 @@ test-suite ventureforth-test
   main-is:             Spec.hs
   build-depends:       base >= 4.7 && < 5,
                        ventureforth -any,
-                       doctest >= 0.9 && < 0.11,
+                       QuickCheck >= 2,
                        hspec >= 2.2
   ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010

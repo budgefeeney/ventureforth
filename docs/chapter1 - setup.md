@@ -1,12 +1,12 @@
 # Venturing Forth
 
-Over the last year, I've decided to learn a new languages, and I settled on Haskell as it requires not only learning a new syntax, but also a new way of structuring programs, which I found intriguing. There two most popular online resources, [Learn You a Haskell](http://learnyouahaskell.com/chapters) and the rather outdated [Real World Haskell](http://book.realworldhaskell.org/read/). Both do a good job of describing the language, but neither goes through the process of designing an functional applications, nor how to layout a "proper" Haskell project with unit-testing and code-coverage.
+I've been teaching myself Haskell the last year, in order to learn a new way of thinking about program design, instead of just another syntax. There two most popular online resources, [Learn You a Haskell](http://learnyouahaskell.com/chapters) and the rather outdated [Real World Haskell](http://book.realworldhaskell.org/read/). Both do a good job of describing the language, but neither goes through the process of designing an functional applications, nor how to layout a "proper" Haskell project with unit-testing and code-coverage.
 
 In the end, I found the best way of learning functional design was exploring F# tutorials, notably [this series](http://fsharpforfunandprofit.com/series/annotated-walkthroughs.html) on designing functional F# applications,  specifically [the "enterprise" tic-tac-toe example](http://fsharpforfunandprofit.com/posts/enterprise-tic-tac-toe/).
 
-To help other Haskellers, I have therefore decided to create a full, end-to-end application dealing with all the awkward aspects a real Haskell program must deal with: project layout, dependency management, unit-testing, I/O, configuration, and state.
+To similarly help other Haskellers, I have therefore decided to create a full, end-to-end application dealing with all the awkward aspects a real Haskell program must deal with: project layout, dependency management, unit-testing, I/O, configuration, and state. The target audience are people who have just finished reading [Learn You a Haskell](http://learnyouahaskell.com/chapters), but haven't yet written a full application.
 
-To keep the focus on the core language, I've chosen to develop a [text adventure game](https://en.wikipedia.org/wiki/Interactive_fiction). This is a pretty prehistoric class of app, but it is a bit more fun than Fibonnacci series. The application will load the game world, load the user's saved state, then print a description of the room they're in and what items they're carrying. The user then types in commands like "move north" or "use wallet" or "use bag with clothes" to interact with that world. The particular game features a hungover student, an English town, and a bag of dirty laundry that needs cleaning.
+To keep the focus on the core language, I've chosen to develop a [text adventure game](https://en.wikipedia.org/wiki/Interactive_fiction). While a pretty prehistoric class of app, but this is at least a little more fun than Fibonnacci series. The application will load the game world, load the user's saved state, then print a description of the room they're in and what items they're carrying. The user then types in commands like "move north" or "use wallet" or "use bag with clothes" to interact with that world. The particular game features a hungover student, an English town, and a bag of dirty laundry that needs cleaning.
 
 This game is in fact a port of a game written as part of an Amstrad CPC BASIC tutorial published in issues [93](https://archive.org/details/amstrad-action-093), [94](https://archive.org/details/amstrad-action-094), [95](https://archive.org/details/amstrad-action-095) and [96](https://archive.org/details/amstrad-action-096) of [Amstrad Action](https://en.wikipedia.org/wiki/Amstrad_Action) magazine back in 1993.
 
@@ -16,22 +16,21 @@ In this first part of the tutorial we'll just
  1. Create a full project skeleton
  2. Use cabal, with a sandbox, to build it.
  
-While simple, this is something not very well described elsewhere, and is somewhat tedious. However once done, this will act as a template for all future projects.
+While simple, this is something not very well described elsewhere, and is somewhat tedious. However once done, this will act as a template for all future projects. Code for this part of the tutorial can be found [on github](https://github.com/budgefeeney/ventureforth/tree/master/chap1)
 
-You'll need to have a fully functioning Haskell development environment setup with `cabal`, GHC 7.10 or later and ideally some sort of decent IDE. For instructions on how to set this up look at this [previous post](fixme).
+You'll need to have a fully functioning Haskell development environment setup with `cabal`, GHC 7.10 or later and ideally some sort of decent IDE. For instructions on how to set this up look at this [Haskell setup guide](fixme).
 
 
 
 # Starting a new Haskell Project
 
-**FIXME** Use name VForth.hs instead of Lib.sh to avoid name clashes if application used as a library
+> For educational purposes, in this and the next two parts of this tutoria we will project template very similar to the [Haskeleton]() template by hand. In practice you would just use the [Haskell Init scaffolding tool]() to create a project according to the Haskeleton template directly, as described [here](fixme) 
 
-As Venture Forth will be a "proper" application it will have be comprised of the following parts
+As a "proper" Haskell application, Venture Forth will be comprised of the following parts
 
  * A library with all the core testable logic
  * An application using that library - typically this is just a single Main.hs project
  * A set of unit tests testing the library (only).
- 	* We will also want to record both test coverage and documentation coverage.
  * A set of benchmarks evaluating performance of critical code-paths
 
 Lets assume you're going to be working in `$HOME/Workspace/ventureforth`. Open a terminal and type the following
@@ -134,7 +133,7 @@ executable ventureforth
   default-language:    Haskell2010
 ```
 
-Note that the app depends on a library called `ventureforth`. This is our library! The name comes explicitly from the `name` field at the top of the Cabal file. The added ghc options are
+Note that the app depends on a library called `ventureforth`. This is our library! The name comes explicitly from the `name` field at the top of the Cabal file. The additional ghc options are
 
  * `-rtsopts` allows users to [configure the the Haskell runtime system (RTS) when launching your program](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/runtime-control.html), for example to specify how many CPU cores to use for parallelism, or the maximum heap size. There are lists of RTS flags for [general usage](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/runtime-control.html#rts-hooks), [parallelism](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/using-smp.html#parallel-options), [concurrency](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/using-concurrent.html) and [garbage collection](https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/runtime-control.html#rts-options-gc).
  * `-threaded` ensures the the runtime must always support multithreaded programs - e.g. the garbage collector must be thread-safe
@@ -149,15 +148,17 @@ test-suite ventureforth-test
   main-is:             Spec.hs
   build-depends:       base >= 4.7 && < 5,
                        ventureforth -any,
-                       doctest >= 0.9 && < 0.11,
+                       QuickCheck >= 2,
                        hspec >= 2.2
   ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 ```
 
-This is broadly the same as for the executable, except that this is a `test-suite` section rather than an `executable` and we've specifed a test type: `exitcode-stdio`. This type of test is for test-apps which indicate failure using a non-zero executable exit code, and which print debug to stdout. The alternative is `detailed-0.9`, which is newer, cleaner, but less well supported. The [cabal manual](https://www.haskell.org/cabal/users-guide/developing-packages.html#test-suites) discusses this further.
+This is broadly the same as for the executable, except that this is a `test-suite` section rather than an `executable` and we've specifed a test type: `exitcode-stdio`. This type of test is for test-apps constructed as a command-line application, printing debug information to stdout, and returnin an exit code to the shell indicating if all tests passed or not. 
 
-Also, we're going to be using several libraries to create our test cases, so we include them here. This section is an example of Cabal's cleverness with dependent version numbers, using ranges and wildcards. We'll discuss these different libraries when we come to actually writing unit-tests, though note that HSpec automatically brings in the QuickCheck and HUnit libraries.
+The alternative is `detailed-0.9`, which is newer, cleaner, but less well supported. The [cabal manual](https://www.haskell.org/cabal/users-guide/developing-packages.html#test-suites) discusses it further.
+
+Also, we're going to be using several libraries to create our test cases, so we include them here. This section is an example of Cabal's cleverness with dependent version numbers: not only can one use ranges, but also wildcards as well. We'll discuss these different libraries when we come to actually writing unit-tests. Note that even though HSpec depends on QuickCheck, we need to explicitly include it in our Cabal file in order to use it ourselves, as we will do in [part three]()
 
 The final sub-project is for benchmarking:
 
@@ -174,7 +175,7 @@ benchmark ventureforth-bench
 
 This requires a benchmarking library called [criterion](https://hackage.haskell.org/package/criterion) [(tutorial)](http://www.serpentine.com/criterion/tutorial.html). 
 
-Note that you can specify as many executables, test-suites and benchmarks as you want in a cabal file, provided they have different names. All will be built (and run as appropriate) by calling `cabal build`, `cabal test` or `cabal bench` on the command-line.
+Note that you can specify as many executables, test-suites and benchmarks as you want in a cabal file, provided they have different names. All will be built (and run if appropriate) by calling `cabal build`, `cabal test` and `cabal bench` on the command-line.
  
 ### Sandboxing
 
@@ -186,6 +187,8 @@ To avoid this "cabal hell", it's better for each project you undertake to have i
 cabal sandbox init
 cabal install --only-dependencies
 ```
+
+Note that Cabal automatically detects the presence of sandboxes, so we didn't have to tell cabal install to install into our sandbox.
 
 Since we have other dependencies, for tests and benchmarking, we have to repeat this process
 
@@ -240,7 +243,7 @@ cabal repl
 
 In this case just the `welcomeMsg` function will be available.
 
-We are now ready to start editing our source files, and with a correct Cabal configuration, we can at last use Atom and IDE-Haskell to do so. In the next section we'll add a module, a unit-test and a benchmark.
+We are now ready to start editing our source files, and with a correct Cabal configuration, we can at last use Atom and IDE-Haskell to do so. In [the next par of this tutorial] we'll add a module, a unit-test and a benchmark.
 
 
 ## Futher Reading:

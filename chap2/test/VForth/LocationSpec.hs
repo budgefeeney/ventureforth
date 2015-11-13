@@ -15,8 +15,8 @@ spec = do
     it "Show puts title before dashes before a description" $ do
       show (newLocation "My Title" "The complete description.") `shouldBe` "My Title\n--------\nThe complete description."
 
-    it "Title should be included in description" $ do
+    it "Title should be included in showable output" $ do
       show (newLocation "My Title" "The complete description.") `shouldContain` "My Title"
 
-    it "Title should be included in description" $ do
+    it "Description should be included in showable output" $ do
       show (newLocation "My Title" "The complete description.") `shouldContain` "The complete description."
