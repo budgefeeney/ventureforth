@@ -22,7 +22,7 @@ True
 However names featuring digits, accents or even spaces are not allowed.
 
 >>> map isValidUserName [" Tony ", "Tony1987",  "Tóni", "Ton", ""]
-[False, False, False, False, False]
+[False,False,False,False,False]
 -}
 isValidUserName :: String -> Bool
 isValidUserName uname =
