@@ -24,7 +24,7 @@ You'll need to have a fully functioning Haskell development environment setup wi
 
 # Starting a new Haskell Project
 
-> For educational purposes, in this and the next two parts of this tutoria we will project template very similar to the [Haskeleton]() template by hand. In practice you would just use the [Haskell Init scaffolding tool]() to create a project according to the Haskeleton template directly, as described [here](fixme) 
+> For educational purposes, in the first three parts of this tutorial, we will manually build lay out project template in a manner very similar to the [Haskeleton template](https://github.com/tfausak/haskeleton) ([tutorial](http://taylor.fausak.me/2014/03/04/haskeleton-a-haskell-project-skeleton/)). In practice you would just use the [Haskell Init scaffolding tool](https://github.com/fujimura/hi) to create a project according to the Haskeleton template directly, as described [here](fixme) 
 
 As a "proper" Haskell application, Venture Forth will be comprised of the following parts
 
