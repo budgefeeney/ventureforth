@@ -3,12 +3,13 @@ module VForth.LocationBench where
 
 import Criterion.Main
 import qualified Data.Text as T
+import TextShow
 import VForth
 
 benchmarks :: [Benchmark]
 benchmarks = [
-    bench "length.show" (whnf (length . show) l)
-  , bench "show" (whnf show l)
+    bench "length.show" (whnf (T.length . showt) l)
+  , bench "show" (whnf showt l)
   ]
   where
     l = Location {

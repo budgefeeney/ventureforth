@@ -1,5 +1,6 @@
 module Main where
 import VForth
+import qualified Data.Text.IO as TIO
 
 main :: IO ()
-main = putStrLn welcomeMsg
+main = TIO.putStrLn welcomeMsg
