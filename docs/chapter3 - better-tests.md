@@ -33,7 +33,7 @@ Why did we not implement this for `Location`? Simply put, if the implementation 
 
 Note that QuickCheck requires all samples to be `Show`-able.
 
-As you can see this happens in a monad: this is because `arbitrary` returns `Gen a` for a type `a`. You don't really need to use monads however, it's often simpler just to use an applicative functor:
+As you can see this happens in a monad: this is because `arbitrary` returns `Gen a` for a type `a`. You don't really need to use monads however, it's often simpler just to use an [applicative functor](http://learnyouahaskell.com/functors-applicative-functors-and-monoids#applicative-functors):
 
 ```
 instance Arbitrary TestableLocation where
@@ -41,6 +41,9 @@ instance Arbitrary TestableLocation where
   	newLocation <$> arbitrary <*> arbitrary
   	)
 ```
+
+[This page](http://chromaticleaves.com/posts/generate-user-data-quickcheck.html) has examples of how to implement `arbitrary` for more complex types. 
+
 
 Putting this together, we can replace our previous hard-coded unit tests detecting the presence of title and description in the show-ed text with QuickCheck properties:
 

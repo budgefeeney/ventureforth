@@ -188,16 +188,20 @@ import Criterion.Main
 import VForth
 
 benchmarks :: [Benchmark]
-benchmarks = [ bench "show" (whnf show l) ]
+benchmarks = [ bench "length.show" (whnf (length . show) l) ]
   where l = Location {
-                title="My Title"
-              , description = "This is the description."
-              }
-```
+    title = "Your Bedroom"
+    , description = unlines [
+      "You're in your bedroom. It's an utterly disgusting tip of a place. ",
+      "Dirty coffee mugs everywhere, bits of computer and motorbike all ",
+      "over the floor. It's an outrage. You can leave by going north, and ",
+      "maybe you should."
+      ]
+    }```
 
 It's worthwhile to look at the [criterion tutorial](http://www.serpentine.com/criterion/tutorial.html) but in simple terms the function `bench` takes a description of the benchmark and a function to benchmark. We return a list of such functions for each module.
 
-As GHC will try to memoize functions, given the same input, there's a chance that the benchmarked function might only ever be executed the first time it's called. To ensure the function is fully executed on every iteration, you can use either the [`nf` or `whnf` functions](https://hackage.haskell.org/package/criterion-1.1.0.0/docs/Criterion-Main.html#g:3) to reduce your function to normal or weak-head-normal forms respectively. WHNF is the Haskell default.
+As GHC will try to memoize functions - i.e. cache given outputs for given inputs - there's a chance that the benchmarked function might only ever be executed the first time it's called. To ensure the function is fully executed on every iteration, you can use either the [`nf` or `whnf` functions](https://hackage.haskell.org/package/criterion-1.1.0.0/docs/Criterion-Main.html#g:3) to reduce your function to normal or weak-head-normal forms respectively. WHNF is the Haskell default. There may still be an uncompleted concatentation in the result of `show`, which is why we additionally call `length`
 
 If you have a function that takes more than one argument, you will need to saturate all but the last parameters, e.g.
 
