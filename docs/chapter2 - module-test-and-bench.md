@@ -197,7 +197,8 @@ benchmarks = [ bench "length.show" (whnf (length . show) l) ]
       "over the floor. It's an outrage. You can leave by going north, and ",
       "maybe you should."
       ]
-    }```
+    }
+```
 
 It's worthwhile to look at the [criterion tutorial](http://www.serpentine.com/criterion/tutorial.html) but in simple terms the function `bench` takes a description of the benchmark and a function to benchmark. We return a list of such functions for each module.
 
