@@ -47,6 +47,7 @@ executable ventureforth
   hs-source-dirs:      app
   main-is:             Main.hs
   build-depends:       base >= 4.7 && < 5,
+                       text >= 1.2,
                        ventureforth -any
   ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N -O
   default-language:    Haskell2010
