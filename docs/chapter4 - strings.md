@@ -1,4 +1,4 @@
-# Venture Forth: The Dangers of Strings and Stringly Typing
+# Venture Forth: Better Strings with Text
 
 This is the fourth part of the [Venture Forth tutorial](fixme) on how to create a full Haskell application. The previous part concluded our explanation of [how to layout a project with unit-tests and benchmakrs](fixme). Code for this part can be found [on github](https://github.com/budgefeeney/ventureforth/tree/master/chap4)
 
@@ -7,9 +7,7 @@ In this part of the tutorial we'll
  * Discuss alternatives to the `String` type and why they exist
  * Illustrate how to use `Text` instead, and how to efficiently construct `Text` values
  * Discuss the `ShowText` type-class.
- * Discuss the dangers of "stringly typed" values, and how to avoid them
- * Quickly introduce how one uses regular expressions in Haskell
- * Discuss how to use private constructors, safe constructor functions, and constructor-views to ensure that all types contain only valid data.
+
  
 ## Better Strings in Haskell
 
@@ -171,7 +169,7 @@ instance Show Location where
     $ Bldr.fromText (title l) <> sep <> Bldr.fromText (description l)
 ```
 
-The benchmark should now be faster than the plain String. If you look at the [code associated with this part of the tutorial]() you will see a second benchmark suite included in `bench/VForth/TextBench.hs` which compares Strings, Text, Text with Builders and ASCII ByteStrings using short, medium and long inputs. For medium and long, Text with Builder beats String. ByteString beats all of them, but you must accept your program will have undefined, destructive behaviour if your text input is not Latin-1 encoded.
+The benchmark should now be faster than the plain String. If you look at the [code associated with this part of the tutorial](https://github.com/budgefeeney/ventureforth/tree/master/chap4) you will see a second benchmark suite included in `bench/VForth/TextBench.hs` which compares Strings, Text, Text with Builders and ASCII ByteStrings using short, medium and long inputs. For medium and long, Text with Builder beats String. ByteString beats all of them, but you must accept your program will have undefined, destructive behaviour if your text input is not Latin-1 encoded.
 
 ## The TextShow Typeclass
 
@@ -193,7 +191,7 @@ instance TextShow Location where
     Bldr.fromText (title l) <> sep <> Bldr.fromText (description l)
 ```
 
-Don't forget to update your cabal file to include the `text-show` dependency as well. The chances to the benchmarks and unit-tests I'll leave as an exercise.
+Don't forget to update your cabal file to include the `text-show` dependency as well. The changes to the benchmarks and unit-tests I'll leave as an exercise.
 
 ## Conclusion
 
@@ -204,11 +202,11 @@ In this section we've
  * Shown how to use the `TextShow` typeclass instead of `Show`
  * Converted our `Location` type to use `Text` and `TextShow`
 
-The code associated with this part of the tutorial is [here](fixme). 
+The code associated with this part of the tutorial is [here](https://github.com/budgefeeney/ventureforth/tree/master/chap4). If you look, you'll see it has been completely changed to use `Text` exclusively, including the doc-test in `src/VForth.hs`. 
 
-In the [next part of this tutorial](fixme) we'll create an additional type to represent `Item`s in a location that a user can pick up, address a problem of name-clashes between types, and look into some useful Haskell extensions to alleviate this.
+In the [next part of this tutorial](fixme) we'll create an additional type to represent `Item`s in a location that a user can pick up, address the problem of name-clashes between types, and look into some useful Haskell extensions to alleviate them.
 
 -----
 
 1. There is a project called Classy Prelude ([github](https://github.com/snoyberg/classy-prelude), [hackage](https://hackage.haskell.org/package/classy-prelude)) which replaces the standard prelude, which is almost 20 years old, with a newer, safer, more modern implementation using modern Haskell idiomata. One of the improvements is that 'Text' is used by default as the String type insofar as possible. 
-2. You may have discoverd that you can use `show` to convert `Text` to a `String`, but the resulting string has all special characters escaped (as if for inclusion in Haskell code), and so is not suitable for human-readable output.	
+2. You may have discovered that you can use `show` to convert `Text` to a `String`, but the resulting string has all special characters escaped (as if for inclusion in Haskell code), and so is not suitable for human-readable output.	
