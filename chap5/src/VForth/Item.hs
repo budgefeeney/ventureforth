@@ -1,9 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 module VForth.Item (
   Item(..)
 ) where
 
 import Data.Text(Text)
 import Data.Text.Lazy.Builder as Bldr
+import Data.Monoid ((<>))
 import TextShow
 
 {-|
@@ -15,4 +18,10 @@ data Item = Item {
   }
 
 instance TextShow Item where
-  showb = Bldr.fromText . itemTitle
+  showb Item{..} =
+    let
+      title = Bldr.fromText itemTitle
+      desc  = Bldr.fromText itemDescription
+      sep   = Bldr.fromText ": "
+    in
+      title <> sep <> desc
