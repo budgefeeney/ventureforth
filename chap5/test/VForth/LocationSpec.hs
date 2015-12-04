@@ -18,7 +18,7 @@ instance Arbitrary TestableLocation where
     )
 instance Show TestableLocation where
   show (TestableLocation Location{..}) =
-    "Location { title=\"" ++ show locTitle ++ "\", description=\"" ++ show locDescription ++ "\" }"
+    "Location { title=\"" <> show locTitle <> "\", description=\"" <> show locDescription <> "\" }"
 
 newLocation :: Text -> Text -> Location
 newLocation titleText descText = Location {

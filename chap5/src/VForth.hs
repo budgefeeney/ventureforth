@@ -1,7 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-|
+Module      : VForth
+Description : The game library for the Venture Forth game
+Copyright   : (c) Bryan Feeney 2015
+
+This is the library for the Venture Forth text-adventure game, containing
+all game logic.
+-}
 module VForth (
+ -- * Locations and useable items in the game world
    module VForth.Location
  , module VForth.Item
+ -- * Utility functions
  , welcomeMsg
  , isValidUserName
  ) where

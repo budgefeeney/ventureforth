@@ -1,5 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-|
+ Module      : VForth
+ Description : An item a player can pick up and use
+ Copyright   : (c) Bryan Feeney 2015
+
+ Representation of items that can be picked up and used by the player, and
+ all associated functions
+-}
 module VForth.Item (
   Item(..)
 ) where

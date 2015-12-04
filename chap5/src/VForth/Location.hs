@@ -1,6 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-module VForth.Location (
+{-|
+ Module      : VForth
+ Description : Locations in the game world the player can visit.
+ Copyright   : (c) Bryan Feeney 2015
+
+Representation of locations that the player can move to in the game, and
+all associated functions
+-}module VForth.Location (
    Location(..)
  ) where
 
