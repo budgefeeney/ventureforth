@@ -188,7 +188,7 @@ The code for this part of the tutorial is [here](https://github.com/budgefeeney/
 
 In the [next part of the tutorial]() we'll make our world interactive, allowing players to move around.
 
-## Appendix: Haskell Regular-Expression Support on Strings
+## Appendix: Haskell Regular-Expression Support for Strings
 
 The original Haskell support for Strings is rather complex, and not particularly well documented, so I've provided a write-up here. The first challenge you have is to choose a regular expression engine from one of the [ten available](https://wiki.haskell.org/Regular_expressions#regex-tdfa).
 
