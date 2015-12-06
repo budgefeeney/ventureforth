@@ -11,26 +11,23 @@ module VForth.GameText (
   -- * Titles & Descriptions of items and locations
     Title
   , title
+  , titleText
   , Description
   , description
-  -- * Non-empty, text-fragments suitable for display to the user
-  , ShortDisplayText
-  , shortDisplayText
-  , shortToText
-  , MedDisplayText
-  , medDisplayText
-  , medToText
+  , descText
 ) where
+
+import Data.Either (isRight)
 
 import Data.Text (Text)
 import qualified Data.Text as Text
+import qualified Data.Text.Lazy.Builder as Bldr
 import Data.Text.ICU
 import Data.Monoid ((<>))
 import Data.Maybe
-import Data.Either
+
 import TextShow
 import VForth.Errors
-
 
 
 delimMatches :: Text -> [Match] -> Text
@@ -40,81 +37,69 @@ delimMatches delim matches =
   in
     Text.intercalate delim mtexts
 
--- | A short piece of non-empty text suitable to display to the user.
-newtype ShortDisplayText = ShortDisplayText { shortToText :: Text } deriving Show
+-- | The title of an item or location
+newtype Title = Title { titleText :: Text } deriving Show
 
 {-|
-  Validates the given text and if valid, converts to a ShortDisplayText value.
+  Validates the given text and if valid, converts to a Title value.
   A valid value is between 3 and 30 characters in length, and contains only
    letters, digits, spaces and normal punctuation (e.g. ampersands are allowed,
    forward slashes are note). For example this validates
 
-  >>> (isRight . shortDisplayText . Text.pack) "My title"
+  >>> (isRight . title . Text.pack) "My title"
   True
 
   But these do not:
 
-  >>> map (isRight. shortDisplayText . Text.pack) [ "", " ", "H", "Mungo\\", "He\tllo", (replicate 50 'A') ]
+  >>> map (isRight . title . Text.pack) [ "", " ", "H", "Mungo\\", "He\tllo", (replicate 50 'A') ]
   [False,False,False,False,False,False]
 
   However as we trim the text before validating, the following is fine, despite
   the prohibition on whitepace other than plain spaces.
 
-  >>> (isRight . shortDisplayText . Text.pack) "\tHello\r\n"
+  >>> (isRight . title . Text.pack) "\tHello\r\n"
   True
 
 -}
-shortDisplayText :: Text -> Either Error ShortDisplayText
-shortDisplayText =
+title :: Text -> Either Error Title
+title =
   let
     badChars = regex [CaseInsensitive] "[^a-z0-9 ,.:;£$\\-!?&()']+"
   in
-    validateText 3 30 badChars ShortDisplayText "short-text"
+    validateText 3 30 badChars Title "short-text"
 
--- | The title of a location, item or other in-game entity
-type Title = ShortDisplayText
+instance TextShow Title where
+  showb = Bldr.fromText . titleText
 
-{-|
-  Validates the given text and if valid, converts to a Title value, the
-  same as 'shortDisplayText'
--}
-title :: Text -> Either Error Title
-title = shortDisplayText
 
--- | A medium-length piece of non-empty text suitable to display to the user
-newtype MedDisplayText = MedDisplayText { medToText :: Text } deriving Show
+-- | A description of an item or location
+newtype Description = Description { descText :: Text } deriving Show
 
 {-|
-  Validates the given text and if valid, converts to a MedDisplayText value.
+  Validates the given text and if valid, converts to a Description value.
   A valid value is between 20 and 500 characters in length, and contains only
   letters, digits, spaces and normal punctuation (e.g. ampersands are allowed,
   forward slashes are note). It can span multiple lines, so newlines are also
   acceptable. For example this validates
 
-  >>> (isRight . medDisplayText . Text.pack) "This is a\nmultiline description"
+  >>> (isRight . description . Text.pack) "This is a\nmultiline description"
   True
 
   But these do not:
 
-  >>> map (isRight. medDisplayText . Text.pack) [ "", " ", "H", "Mungo", "C:\\Windows\\System\\MyFile.txt", (replicate 600 'A') ]
+  >>> map (isRight . description . Text.pack) [ "", " ", "H", "Mungo", "C:\\Windows\\System\\MyFile.txt", (replicate 600 'A') ]
   [False,False,False,False,False,False]
 -}
-medDisplayText :: Text -> Either Error MedDisplayText
-medDisplayText =
+description :: Text -> Either Error Description
+description =
   let
     badChars = regex [CaseInsensitive] "[^a-z0-9 ,.:;£$\\-!?&()\n\t\"']+"
   in
-    validateText 20 500 badChars MedDisplayText "medium-text"
+    validateText 20 500 badChars Description "medium-text"
 
--- | A description of a location, item or other in-game entity
-type Description = MedDisplayText
+instance TextShow Description where
+  showb = Bldr.fromText . descText
 
-{-|
-  Validates the given text and if valid, converts to a Description value, the
-  same as 'longDisplayText'
--}
-description :: Text -> Either Error Description
-description = medDisplayText
 
 -- | Validates the given text according to the given criteria, and then
 --   wraps it up in the appropriate type. Empty text is assumed to be

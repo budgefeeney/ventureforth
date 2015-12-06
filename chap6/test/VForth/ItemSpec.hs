@@ -5,40 +5,59 @@ module VForth.ItemSpec where
 import qualified Data.Text as T
 import Data.Text.Arbitrary
 import TextShow
-import Data.Char(isSpace)
+import Data.Char (isSpace)
 import Test.Hspec
 import Data.Monoid ((<>))
 import Test.QuickCheck
 import VForth
 
+import VForth.GameTextSpec
+
+
 newtype TestableItem = TestableItem Item
 instance Arbitrary TestableItem where
-  arbitrary = TestableItem <$> (
-    newItem <$> arbitrary <*> arbitrary
-    )
+  arbitrary = newItem <$> arbitrary <*> arbitrary
+
 instance Show TestableItem where
   show (TestableItem Item{..}) =
     "Item { title=\"" <> show itemTitle <> "\", description=\"" <> show itemDescription <> "\" }"
 
-newItem :: Text -> Text -> Item
-newItem titleText descText = Item {
-    itemTitle = titleText
-  , itemDescription = descText
-  }
+
+-- | Create a new item
+newItem :: TestableTitle -> TestableDescription -> TestableItem
+newItem (TestableTitle t) (TestableDescription d) =
+  TestableItem Item {
+     itemTitle = t
+   , itemDescription = d
+   }
+
+
+-- | Creates a new item on the assumption the given titles and descriptipns are
+--   valid. The test-spec will crash if they're not.
+unsafeNewItem :: Text -> Text -> Item
+unsafeNewItem tText dText =
+  let
+    t = right . title $ tText
+    d = right . description $ dText
+  in
+    Item {
+       itemTitle = t
+     , itemDescription = d
+     }
+
 
 spec :: Spec
 spec = do
   describe "Item Display" $ do
     it "Show puts title before dashes before a description" $ do
-      showt (newItem "My Title" "The complete description.") `shouldBe` "My Title: The complete description."
+      showt (unsafeNewItem "My Title" "The complete description.") `shouldBe` "My Title: The complete description."
 
     it "Title should be included in showable output" $ property $
-      \(TestableItem i@Item{..}) -> itemTitle `T.isInfixOf` showt i
+      \(TestableItem i@Item{..}) -> titleText itemTitle `T.isInfixOf` showt i
 
     it "Description should be included in showable output" $ property $
-      \(TestableItem i@Item{..}) -> itemDescription `T.isInfixOf` showt i
+      \(TestableItem i@Item{..}) -> descText itemDescription `T.isInfixOf` showt i
 
     it "Showable output is never blank"  $ property $
       \(TestableItem i@Item{..}) ->
-        (not . T.null $ itemTitle) && (not . T.null $ itemDescription)
-        ==> any (not . isSpace) (T.unpack (showt i))
+        any (not . (isSpace)) (T.unpack (showt i))
