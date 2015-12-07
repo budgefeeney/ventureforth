@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+
 {-|
 Module      : VForth.GameText
 Description : Validated classes of text
@@ -9,12 +11,13 @@ valid text.
 -}
 module VForth.GameText (
   -- * Titles & Descriptions of items and locations
-    Title
+    SafeTextConstraints
+  , Title
   , title
-  , titleText
+  , titleConstraints
   , Description
   , description
-  , descText
+  , descriptionConstraints
 ) where
 
 import Data.Either (isRight)
@@ -22,23 +25,126 @@ import Data.Either (isRight)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy.Builder as Bldr
-import Data.Text.ICU
+import Data.Text.ICU hiding (compare)
 import Data.Monoid ((<>))
-import Data.Maybe
+import Data.Default
 
-import TextShow
+import TextShow hiding (fromText)
 import VForth.Errors
 
+{-
+  The "rules" governing how to validate a piece of text. As well as the usual
+  minimum and maximum lengths, whether to trim leading and training whitespace,
+  and the list of valid characters, you can also provide functions to be run
+  before and after all other checks have passed in case there's some additional
+  work you'd like done
+-}
+data SafeTextConstraints = SafeTextConstraints {
+  -- | A description of this type of safe text, used in errors
+    textLabel :: Text
+  -- | Minimum permitted length, zero by default
+  , minLength :: Int
+  -- | Maximum permitted lenght, @max :: Int@ by default
+  , maxLength :: Int
+  -- | The list of characters allowed in the string. If nothing, all characters
+  --   are allowed. Nothing by default
+  , validChars :: Maybe String
+  -- | Called before the text is validated. If a @Left@ value is returned no
+  --   more validation checks take place (usual @>>=@ behaviour). By default
+  --   this strips the string
+  , beforeValidation :: Text -> Either Error Text
+  -- | Called after all other validation checks have been executed, if and only
+  --   if they've all succeeded. By default this does nothing
+  , afterValidation :: Text -> Either Error Text
+}
 
-delimMatches :: Text -> [Match] -> Text
-delimMatches delim matches =
+instance Default SafeTextConstraints where
+  def = SafeTextConstraints {
+      textLabel = "text"
+    , minLength = 0
+    , maxLength = maxBound
+    , validChars = Nothing -- Paradoxically means everything is allowed
+    , beforeValidation = Right . Text.strip
+    , afterValidation  = Right
+    }
+
+-- | Creates a regular expression that will match all characters not in the
+--   given list of valid characters. This regex is _not_ case-sensitive.
+invalidCharsRe :: String       -- ^ the list of _valid_ characters
+               -> Regex
+invalidCharsRe validChars =
+  regex [CaseInsensitive] . Text.pack $ "[^" <> validChars <> "]"
+
+-- | Performs all checks on a piece of text (min-length, max-length, valid
+--   characters, and any @extraValidation@) if necessary. If all checks pass,
+--   it is
+validate :: SafeTextConstraints  -- ^ Specifies how to validate the text
+          -> Text                -- ^ The text to validate and covert
+          -> Either Error Text
+validate SafeTextConstraints{..}  rawText =
   let
-    mtexts = map (fromJust . group 0) matches
+    checkEmpty t =
+      if minLength > 0 && Text.null t then
+        Left . InvalidGameText $ textLabel <> " which is empty"
+      else
+        Right t
+
+    checkMinLen t =
+      if Text.length t < minLength
+      then
+        Left . InvalidGameText $ textLabel
+          <> " whose length of " <> showt (Text.length t)
+          <> " characters is below the minimum of "
+          <> showt minLength <> " characters"
+      else
+        Right t
+
+    checkMaxLen t =
+      if Text.length t > maxLength
+      then
+        Left . InvalidGameText $ textLabel
+          <> " whose length of " <> showt (Text.length t)
+          <> " characters is over the maximum of "
+          <> showt maxLength <> " characters"
+      else
+        Right t
+
+    checkInvalidChars t =
+      let
+        foundInvalidChars = case validChars of
+          (Just chars) -> (not . null) $ findAll (invalidCharsRe chars) t
+          Nothing      -> False
+
+        -- printableInvalidCharMatches =
+        --   Text.intercalate "; " (map (fromJust . group 0) <$> invalidCharMatches)
+      in
+        if foundInvalidChars
+        then
+          Left . InvalidGameText $ textLabel
+            <> " which contains the invalid character sequences: "
+            -- <> printableInvalidCharMatches
+        else
+          Right t
   in
-    Text.intercalate delim mtexts
+    beforeValidation rawText
+    >>= checkEmpty
+    >>= checkMinLen
+    >>= checkMaxLen
+    >>= checkInvalidChars
+    >>= afterValidation
+
 
 -- | The title of an item or location
-newtype Title = Title { titleText :: Text } deriving Show
+newtype Title = Title Text deriving (Eq, Ord)
+
+-- | The constraints specifying which text values are valid titles
+titleConstraints :: SafeTextConstraints
+titleConstraints = def {
+    textLabel = "title"
+  , minLength = 3
+  , maxLength = 30
+  , validChars = Just $ ['a'..'z'] <> ['A'..'Z'] <> ['0'..'9'] <> ",.:;£$-!?&()' "
+  }
 
 {-|
   Validates the given text and if valid, converts to a Title value.
@@ -62,24 +168,32 @@ newtype Title = Title { titleText :: Text } deriving Show
 
 -}
 title :: Text -> Either Error Title
-title =
-  let
-    badChars = regex [CaseInsensitive] "[^a-z0-9 ,.:;£$\\-!?&()']+"
-  in
-    validateText 3 30 badChars Title "short-text"
+title text = Title <$> validate titleConstraints text
 
 instance TextShow Title where
-  showb = Bldr.fromText . titleText
+  showb (Title t) = Bldr.fromText t
+
+instance Show Title where
+  show (Title t) = Text.unpack t
 
 
--- | A description of an item or location
-newtype Description = Description { descText :: Text } deriving Show
+-- | A Description of an item or location
+newtype Description = Description Text deriving (Eq, Ord)
+
+-- | The constraints specifying which text values are valid descriptions
+descriptionConstraints :: SafeTextConstraints
+descriptionConstraints = def {
+    textLabel = "description"
+  , minLength = 20
+  , maxLength = 500
+  , validChars = Just $ ['a'..'z'] <> ['A'..'Z'] <> ['0'..'9'] <> ",.:;£$-!?&()' \r\n\t"
+  }
 
 {-|
   Validates the given text and if valid, converts to a Description value.
   A valid value is between 20 and 500 characters in length, and contains only
   letters, digits, spaces and normal punctuation (e.g. ampersands are allowed,
-  forward slashes are note). It can span multiple lines, so newlines are also
+  forward slashes are not). It can span multiple lines, so newlines are also
   acceptable. For example this validates
 
   >>> (isRight . description . Text.pack) "This is a\nmultiline description"
@@ -91,45 +205,10 @@ newtype Description = Description { descText :: Text } deriving Show
   [False,False,False,False,False,False]
 -}
 description :: Text -> Either Error Description
-description =
-  let
-    badChars = regex [CaseInsensitive] "[^a-z0-9 ,.:;£$\\-!?&()\n\t\"']+"
-  in
-    validateText 20 500 badChars Description "medium-text"
+description text = Description <$> validate descriptionConstraints text
 
 instance TextShow Description where
-  showb = Bldr.fromText . descText
+  showb (Description d) = Bldr.fromText d
 
-
--- | Validates the given text according to the given criteria, and then
---   wraps it up in the appropriate type. Empty text is assumed to be
---   immediately invalid.
-validateText :: Int         -- ^ The minimum length (inclusive)
-             -> Int         -- ^ The maximum length (exclusive)
-             -> Regex       -- ^ A regular expression matching _invalid_ characters
-             -> (Text -> a) -- ^ A function converting the text to the output type
-             -> Text        -- ^ A descriptive label for the text used in error messages
-             -> Text        -- ^ The text to validate and convert
-             -> Either Error a
-validateText minLen maxLen badCharsRe constructorFunc textDesc rawText =
-  let
-    t = Text.strip rawText
-  in
-    if minLen > 0 && Text.null t
-    then
-      Left . InvalidGameText $ textDesc <> " which is empty"
-    else if Text.length t < minLen
-    then
-      Left . InvalidGameText $ textDesc <> " whose length of " <> showt (Text.length t) <> " characters is below the minimum of " <> showt minLen <> " characters"
-    else if Text.length t > maxLen
-    then
-      Left . InvalidGameText $ textDesc <> " whose length of " <> showt (Text.length t) <> " characters is over the maximum of " <> showt maxLen <> " characters"
-    else
-      let
-        badChars = findAll badCharsRe t
-      in
-        if (not . null) badChars
-        then
-          Left . InvalidGameText $ textDesc <> " which contains the invalid character sequences: " <> delimMatches "; " badChars
-        else
-          Right . constructorFunc $ t
+instance Show Description where
+  show (Description d) = Text.unpack d
