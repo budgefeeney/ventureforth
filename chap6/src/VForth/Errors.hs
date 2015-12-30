@@ -25,7 +25,7 @@ import TextShow
  The list of possible application errors
 -}
 data Error =
-  InvalidGameText { msg :: Text }
+  InvalidGameText Text
 
 instance TextShow Error where
   showb = Bldr.fromText . errorDescription
@@ -35,5 +35,5 @@ instance Show Error where
 
 -- | Converts an @Error@ value to text suitable for display to the user
 errorDescription :: Error -> Text
-errorDescription InvalidGameText{..} =
+errorDescription (InvalidGameText msg) =
   "The game data is corrupted: there is a " <> msg

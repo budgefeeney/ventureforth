@@ -40,7 +40,7 @@ location t d i =
 instance TextShow Location where
   showb Location{..} =
     let
-      titleLen = fromIntegral . T.length . titleText $ locTitle
+      titleLen = fromIntegral . T.length . showt $ locTitle
       dashes   = Bldr.fromLazyText $ LT.replicate titleLen (LT.pack "-")
       endl     = Bldr.singleton '\n'
       sep      = endl <> dashes <> endl
