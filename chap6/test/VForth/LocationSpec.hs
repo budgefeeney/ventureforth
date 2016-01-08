@@ -2,10 +2,8 @@
 {-# LANGUAGE RecordWildCards #-}
 module VForth.LocationSpec where
 
-import qualified Data.Text as T
 import Data.Text.Arbitrary
 import TextShow
-import Data.Char(isSpace)
 import Test.Hspec
 import Data.Monoid ((<>))
 import Test.QuickCheck
@@ -40,8 +38,8 @@ newLocation (TestableTitle t) (TestableDescription d) is =
 unsafeNewLocation :: Text -> Text -> Location
 unsafeNewLocation tText dText =
   let
-    t = right . title $ tText
-    d = right . description $ dText
+    t = unsafeRight . title $ tText
+    d = unsafeRight . description $ dText
   in
     Location {
        locTitle = t

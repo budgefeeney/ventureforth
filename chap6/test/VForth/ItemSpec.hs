@@ -37,8 +37,8 @@ newItem (TestableTitle t) (TestableDescription d) =
 unsafeNewItem :: Text -> Text -> Item
 unsafeNewItem tText dText =
   let
-    t = right . title $ tText
-    d = right . description $ dText
+    t = unsafeRight . title $ tText
+    d = unsafeRight . description $ dText
   in
     Item {
        itemTitle = t
@@ -53,10 +53,10 @@ spec = do
       showt (unsafeNewItem "My Title" "The complete description.") `shouldBe` "My Title: The complete description."
 
     it "Title should be included in showable output" $ property $
-      \(TestableItem i@Item{..}) -> titleText itemTitle `T.isInfixOf` showt i
+      \(TestableItem i@Item{..}) -> showt itemTitle `T.isInfixOf` showt i
 
     it "Description should be included in showable output" $ property $
-      \(TestableItem i@Item{..}) -> descText itemDescription `T.isInfixOf` showt i
+      \(TestableItem i@Item{..}) -> showt itemDescription `T.isInfixOf` showt i
 
     it "Showable output is never blank"  $ property $
       \(TestableItem i@Item{..}) ->

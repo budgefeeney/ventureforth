@@ -2,15 +2,15 @@
 {-# LANGUAGE RecordWildCards #-}
 
 {- |
-Module      : VForth.GameText
-Description : Validated classes of text
+Module      : Data.Text.Validation
+Description : Simple validation of text
 Copyright   : (c) Bryan Feeney 2015
 
 Provides a simple generic way of specifying an applying a validation
 strategy to text. Returns on first failure, rather than continuing
 to the end.
 -}
-module VForth.TextValidation (
+module Data.Text.Validation (
     ValidationConstraints (..)
   , validate
   ) where
@@ -41,13 +41,9 @@ data ValidationConstraints = ValidationConstraints {
   , vconsMinLength :: Int
   -- | Maximum permitted lenght, @max :: Int@ by default
   , vconsMaxLength :: Int
-  -- | The list of characters allowed in the string. If nothing, all characters
-  --   are allowed. Nothing by default. If case is not important, specify only
-  --   lower-case characters here, and set @vconsCaseSensitive@ to @false@
-  , vconsValidChars :: Maybe String
-  -- | Whether we should ignore case when looking at which characters are valid.
-  --   True by default
-  , vconsIgnoreCase :: Bool
+  -- | A regular expression which must evaluate to @False@ for the string to be
+  --   valid, i.e. it matches *invalid* strings.
+  , vconsInvalidRegex :: Maybe Regex
   -- | Called before the text is validated. If a @Left@ value is returned no
   --   more validation checks take place (usual @>>=@ behaviour). By default
   --   this strips the string
@@ -62,25 +58,10 @@ instance Default ValidationConstraints where
       vconsTextLabel = "text"
     , vconsMinLength = 0
     , vconsMaxLength = maxBound
-    , vconsValidChars = Nothing -- Paradoxically means everything is allowed
-    , vconsIgnoreCase = True
+    , vconsInvalidRegex = Nothing -- Paradoxically means everything is allowed
     , vconsBeforeValidation = Right . Text.strip
     , vconsAfterValidation  = Right
     }
-
--- | Creates a regular expression that will match all characters not in the
---   given list of valid characters.
-invalidCharsRe :: String  -- ^ the list of _valid_ characters
-               -> Bool    -- ^ set true for case-insensitive, false otherwise
-               -> Regex
-invalidCharsRe validChars ignoreCase =
-  let
-    escapableChars = ['(', ')', '[', ']', '\\', '-']
-    escapeBrackets c acc =
-      if c `elem` escapableChars then '\\' : c : acc else c : acc
-    escValidChrs = foldr escapeBrackets "" validChars
-  in
-    regex [CaseInsensitive | ignoreCase] . Text.pack $ "[^" <> escValidChrs <> "]"
 
 -- | Performs all checks on a piece of text (min-length, max-length, valid
 --   characters, and any @extraValidation@) if necessary. If all checks pass,
@@ -118,14 +99,14 @@ validate ValidationConstraints{..}  rawText =
 
     checkInvalidChars t =
       let
-        invalidRegex   = invalidCharsRe <$> vconsValidChars <*> Just vconsIgnoreCase
-        invalidMatches = maybe [] (`findAll` t) invalidRegex
+        invalidMatches = maybe [] (`findAll` t) vconsInvalidRegex
       in
         if (not . null) invalidMatches
         then
           Left . InvalidGameText $ vconsTextLabel
             <> " which contains the invalid character sequences: "
             <> Text.intercalate "; " (map (fromJust . group 0) invalidMatches)
+            <> ". The " <> vconsTextLabel <> " is " <> t
         else
           Right t
   in

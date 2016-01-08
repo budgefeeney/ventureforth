@@ -39,7 +39,8 @@ library
                        VForth.Location,
                        VForth.Item,
                        VForth.GameText,
-                       VForth.Errors
+                       VForth.Errors,
+                       Data.Text.Validation
   build-depends:       base >= 4.7 && < 5,
                        text >= 1.2,
                        text-show >= 2.1,

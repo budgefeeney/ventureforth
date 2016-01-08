@@ -11,36 +11,56 @@ module VForth.GameText (
   -- * Titles & Descriptions of items and locations
     Title
   , title
+  , titleChars
   , titleConstraints
   , Description
   , description
+  , descriptionChars
   , descriptionConstraints
 ) where
 
 import Data.Either (isRight)
 
+import Data.Char
+import Data.List ((\\))
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy.Builder as Bldr
--- import Data.Text.ICU hiding (compare)
+import Data.Text.ICU
 import Data.Monoid ((<>))
 import Data.Default
 
 import TextShow hiding (fromText)
 import VForth.Errors
-import VForth.TextValidation
+import Data.Text.Validation
 
 
 -- | The title of an item or location
 newtype Title = Title Text deriving (Eq, Ord)
 
+-- | Character classes accepted by the title validation regex
+titleRegexClasses :: Text
+titleRegexClasses = "\\p{Alphabetic}\\p{Digit}\\p{Punct}+\\-<=>/$£€"
+
+-- | Constrains what kind of titles are accepted
 titleConstraints :: ValidationConstraints
 titleConstraints = def {
     vconsTextLabel = "title"
+  , vconsMinLength = 3
   , vconsMaxLength = 30
-  , vconsValidChars =
-      Just $ ['a'..'z'] <> ['0'..'9'] <> ",.:;£$-!?&()' "
+  , vconsInvalidRegex =
+      Just $ regex [CaseInsensitive] ("[^" <> titleRegexClasses <> " &&[^\\\\]]")
   }
+
+-- | Sample characters that can be used to construct arbitrary instances
+titleChars :: [Char]
+titleChars =
+  ['A'..'Z']
+    <> ['a'..'z']
+    <> ['0'..'9']
+    <> "!\"#$%&'()+,-./:;<=>?@[]_{}"
+    <> " "
+    <> (chr <$> ([0x00C0..0x01B7] \\ [0x00D7, 0x00F7]))
 
 {-|
   Validates the given text and if valid, converts to a Title value.
@@ -83,8 +103,14 @@ descriptionConstraints = def {
     vconsTextLabel = "description"
   , vconsMinLength = 20
   , vconsMaxLength = 500
-  , vconsValidChars = Just $ ['a'..'z'] <> ['0'..'9'] <> ",.:;£$-!?&()' \r\n\t"
+  , vconsInvalidRegex =
+      Just $ regex [CaseInsensitive] ("[^" <> titleRegexClasses <> "\\p{Space}&&[^\\\\]]")
   }
+
+-- | Sample characters that can be used to construct arbitrary instances
+descriptionChars :: [Char]
+descriptionChars =
+  titleChars <> "\n\r\f\t" -- basically we just allow newlines
 
 {-|
   Validates the given text and if valid, converts to a Description value.

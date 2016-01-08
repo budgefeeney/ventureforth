@@ -13,7 +13,6 @@ module VForth (
  , module VForth.Item
  , module VForth.GameText
  , module VForth.Errors
- , module VForth.GameTextArb
  -- * Utility functions
  , welcomeMsg
  , isValidUserName
@@ -22,7 +21,6 @@ module VForth (
 import VForth.Location
 import VForth.Item
 import VForth.GameText
-import VForth.GameTextArb
 import VForth.Errors
 import Data.Text (Text)
 import qualified Data.Text as T
