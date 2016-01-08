@@ -1,4 +1,8 @@
+{-# OPTIONS_GHC -fno-warn-unused-imports #-} -- to enable the doc-test only import of Data.Either
 {-# LANGUAGE OverloadedStrings #-}
+
+
+
 
 {-|
 Module      : VForth.GameText
@@ -19,7 +23,7 @@ module VForth.GameText (
   , descriptionConstraints
 ) where
 
-import Data.Either (isRight)
+
 
 import Data.Char
 import Data.List ((\\))
@@ -33,6 +37,7 @@ import Data.Default
 import TextShow hiding (fromText)
 import VForth.Errors
 import Data.Text.Validation
+import Data.Either (isRight)
 
 
 -- | The title of an item or location
@@ -61,6 +66,7 @@ titleChars =
     <> "!\"#$%&'()+,-./:;<=>?@[]_{}"
     <> " "
     <> (chr <$> ([0x00C0..0x01B7] \\ [0x00D7, 0x00F7]))
+
 
 {-|
   Validates the given text and if valid, converts to a Title value.

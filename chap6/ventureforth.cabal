@@ -50,7 +50,7 @@ library
                        quickcheck-text >= 0.1,
                        bytestring >= 0.10.6.0,
                        data-default >= 0.5.3
-  ghc-options:         -Wall
+  ghc-options:         -Wall -Werror
   default-language:    Haskell2010
 
 executable ventureforth
@@ -59,7 +59,7 @@ executable ventureforth
   build-depends:       base >= 4.7 && < 5,
                        text >= 1.2,
                        ventureforth -any
-  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N -O
+  ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N -O
   default-language:    Haskell2010
 
 test-suite ventureforth-test
@@ -73,7 +73,7 @@ test-suite ventureforth-test
                        text >= 1.2,
                        quickcheck-text >= 0.1,
                        text-show >= 2.1
-  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
 test-suite ventureforth-doctest
@@ -83,7 +83,7 @@ test-suite ventureforth-doctest
   build-depends:       base >= 4.7 && < 5,
                        doctest >= 0.9 && < 0.11,
                        Glob >= 0.7.5
-  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
 benchmark ventureforth-bench
@@ -96,5 +96,5 @@ benchmark ventureforth-bench
                        text >= 1.2,
                        text-show >= 2.1,
                        bytestring >= 0.10.6.0
-  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N -O
+  ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N -O
   default-language:    Haskell2010
